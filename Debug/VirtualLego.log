@@ -6,6 +6,16 @@ C:\Users\jy\source\repos\OOP\virtualLego.cpp(116,1): warning C4305: '초기화 �
 C:\Users\jy\source\repos\OOP\virtualLego.cpp(152,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
 C:\Users\jy\source\repos\OOP\virtualLego.cpp(153,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
 C:\Users\jy\source\repos\OOP\virtualLego.cpp(277): warning C4305: 'return': 'double'에서 'float'(으)로 잘립니다.
-C:\Users\jy\source\repos\OOP\virtualLego.cpp(602,18): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\virtualLego.cpp(603,18): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(323): warning C4305: '인수': 'double'에서 'FLOAT'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(384,16): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(483,1): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(503,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(504,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(520,16): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(521,15): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(523,19): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(526,42): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(815,48): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(1014,18): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\virtualLego.cpp(1015,18): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   VirtualLego.vcxproj -> C:\Users\jy\source\repos\OOP\Debug\VirtualLego.exe

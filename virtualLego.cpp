@@ -473,11 +473,13 @@ public:
 		}
 	}
 
+	// 당구채의 위치, 각도 설정
 	void setTransform(float x, float y, float z, float angle) {
 		setRotation(angle);
 		setPosition(x, y, z);
 	}
 
+	// 당구채 이동
 	void stickUpdate(float timeDiff)
 	{
 		const float TIME_SCALE = 3.3;
@@ -510,6 +512,8 @@ public:
 		D3DXVECTOR3 org(m_x, m_y, m_z);
 		return org;
 	}
+
+	// 당구채가 움직이는 중이면 true
 	bool isMove() const {
 		return isMoving;
 	}
@@ -625,7 +629,8 @@ public:
 		pDevice->SetMaterial(&m_mtrl);
 		m_pBoundMesh->DrawSubset(0);
 	}
-
+	
+	// 텍스트 위치, 각도, 크기 설정
 	void setTransform(float x, float y, float z, float angle, float scale) {
 		D3DXMATRIX m;
 		m_scale = scale;

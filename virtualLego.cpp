@@ -2,7 +2,7 @@
 //
 // File: virtualLego.cpp
 //
-// Original Author: ¹ÚÃ¢Çö Chang-hyeon Park, 
+// Original Author: ë°•ì°½í˜„ Chang-hyeon Park, 
 // Modified by Bong-Soo Sohn and Dong-Jun Kim
 // 
 // Originally programmed for Virtual LEGO. 
@@ -119,7 +119,7 @@ public:
 			D3DXVECTOR3 normal = ball.getCenter() - getCenter();
 			D3DXVec3Normalize(&normal, &normal);
 			// Calculate impulse based on the normal and relative velocity
-			float impulse = 2.0f * (relVelX * normal.x + relVelZ * normal.z) /(1.0f + 1.0f); // Assuming equal masses
+			float impulse = relVelX * normal.x + relVelZ * normal.z;
 			// Update velocities
 			setPower(getVelocity_X() + impulse * normal.x, getVelocity_Z() + impulse * normal.z);
 			ball.setPower(ball.getVelocity_X() - impulse * normal.x, ball.getVelocity_Z() - impulse * normal.z);
@@ -269,14 +269,14 @@ public:
 	void hitBy(CSphere& ball)
 	{
 		if (hasIntersected(ball)) {
-			if (m_width > m_depth) {												// °¡·Î¹æÇâ º®ÀÏ ¶§
-				if (ball.getVelocity_Z() * (m_z - ball.getCenter().z) > 0) {		// °øÀÌ º®À» ÇâÇØ ¿òÁ÷ÀÌ°í ÀÖÀ» ¶§¸¸ Ãæµ¹ ÆÇÁ¤
-					ball.setPower(0.7*ball.getVelocity_X(), -0.7*ball.getVelocity_Z());		// °øÀÇ ¼ÓµµÀÇ z¼ººĞ ºÎÈ£ ¹İÀü
+			if (m_width > m_depth) {												// ê°€ë¡œë°©í–¥ ë²½ì¼ ë•Œ
+				if (ball.getVelocity_Z() * (m_z - ball.getCenter().z) > 0) {		// ê³µì´ ë²½ì„ í–¥í•´ ì›€ì§ì´ê³  ìˆì„ ë•Œë§Œ ì¶©ëŒ íŒì •
+					ball.setPower(0.7*ball.getVelocity_X(), -0.7*ball.getVelocity_Z());		// ê³µì˜ ì†ë„ì˜ zì„±ë¶„ ë¶€í˜¸ ë°˜ì „
 				}
 			}
-			else {																	// ¼¼·Î¹æÇâ º®ÀÏ ¶§
-				if (ball.getVelocity_X() * (m_x - ball.getCenter().x) > 0) {		// °øÀÌ º®À» ÇâÇØ ¿òÁ÷ÀÌ°í ÀÖÀ» ¶§¸¸ Ãæµ¹ ÆÇÁ¤
-					ball.setPower(-0.7*ball.getVelocity_X(), 0.7*ball.getVelocity_Z());		// °øÀÇ ¼ÓµµÀÇ x¼ººĞ ºÎÈ£ ¹İÀü
+			else {																	// ì„¸ë¡œë°©í–¥ ë²½ì¼ ë•Œ
+				if (ball.getVelocity_X() * (m_x - ball.getCenter().x) > 0) {		// ê³µì´ ë²½ì„ í–¥í•´ ì›€ì§ì´ê³  ìˆì„ ë•Œë§Œ ì¶©ëŒ íŒì •
+					ball.setPower(-0.7*ball.getVelocity_X(), 0.7*ball.getVelocity_Z());		// ê³µì˜ ì†ë„ì˜ xì„±ë¶„ ë¶€í˜¸ ë°˜ì „
 				}
 			}
 		}
@@ -304,7 +304,7 @@ private:
 	ID3DXMesh* m_pBoundMesh;
 };
 
-// °øÀÌ ¿òÁ÷ÀÏ °æ·Î Ç¥½Ã
+// ê³µì´ ì›€ì§ì¼ ê²½ë¡œ í‘œì‹œ
 class CPath {
 private:
 	class CDot {
@@ -388,7 +388,7 @@ private:
 	const float width = 9;
 	const float depth = 6.24f;
 public:
-	// °ø »ı¼º
+	// ê³µ ìƒì„±
 	void create(IDirect3DDevice9* pDevice) {
 		if (NULL == pDevice)
 			return;
@@ -396,7 +396,7 @@ public:
 			dots[i].create(pDevice);
 		}
 	}
-	// startPos¿¡¼­ endPos ¹æÇâÀ¸·Î º®±îÁö 0.2 °£°İÀ¸·Î °øÀ» ±×¸²
+	// startPosì—ì„œ endPos ë°©í–¥ìœ¼ë¡œ ë²½ê¹Œì§€ 0.2 ê°„ê²©ìœ¼ë¡œ ê³µì„ ê·¸ë¦¼
 	void draw(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld, D3DXVECTOR3 startPos, D3DXVECTOR3 endPos) {
 		auto direction = endPos - startPos;
 		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y) + (direction.z * direction.z));
@@ -413,7 +413,7 @@ public:
 	}
 };
 
-// ´ç±¸Ã¤
+// ë‹¹êµ¬ì±„
 class CStick {
 private:
 	float m_x;
@@ -446,7 +446,7 @@ public:
 		m_mtrl.Power = 5.0f;
 
 		m_length = length;
-		// radius1ÀÌ radius2º¸´Ù Å©´Ù¸é µÎ °ªÀ» ¹Ù²Ş
+		// radius1ì´ radius2ë³´ë‹¤ í¬ë‹¤ë©´ ë‘ ê°’ì„ ë°”ê¿ˆ
 		if (radius2 < radius1) {
 			float temp = radius1;
 			radius1 = radius2;
@@ -483,7 +483,7 @@ public:
 
 	void hitBy(CSphere& ball)
 	{
-		// °ø°ú ºÎµúÈ÷¸é °øÀ» ¿òÁ÷ÀÌ°í ´ç±¸Ã¤´Â ¸ØÃã
+		// ê³µê³¼ ë¶€ë”ªíˆë©´ ê³µì„ ì›€ì§ì´ê³  ë‹¹êµ¬ì±„ëŠ” ë©ˆì¶¤
 		if (hasIntersected(ball)) {
 			ball.setPower(m_velocity_x, m_velocity_z);
 			setPower(0, 0);
@@ -491,13 +491,13 @@ public:
 		}
 	}
 
-	// ´ç±¸Ã¤ÀÇ À§Ä¡, °¢µµ ¼³Á¤
+	// ë‹¹êµ¬ì±„ì˜ ìœ„ì¹˜, ê°ë„ ì„¤ì •
 	void setTransform(float x, float y, float z, float angle) {
 		setRotation(angle);
 		setPosition(x, y, z);
 	}
 
-	// ´ç±¸Ã¤ ÀÌµ¿
+	// ë‹¹êµ¬ì±„ ì´ë™
 	void stickUpdate(float timeDiff)
 	{
 		const float TIME_SCALE = 3.3;
@@ -531,12 +531,12 @@ public:
 		return org;
 	}
 
-	// ´ç±¸Ã¤°¡ ¿òÁ÷ÀÌ´Â ÁßÀÌ¸é true
+	// ë‹¹êµ¬ì±„ê°€ ì›€ì§ì´ëŠ” ì¤‘ì´ë©´ true
 	bool isMove() const {
 		return isMoving;
 	}
 
-	// startPos¿¡¼­ endPos ¹æÇâÀ¸·Î ´ç±¸Ã¤ÀÇ °¢µµ¿Í À§Ä¡ ¼³Á¤
+	// startPosì—ì„œ endPos ë°©í–¥ìœ¼ë¡œ ë‹¹êµ¬ì±„ì˜ ê°ë„ì™€ ìœ„ì¹˜ ì„¤ì •
 	void setTarget(D3DXVECTOR3 startPos, D3DXVECTOR3 endPos) {
 		auto direction = endPos - startPos;
 		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y) + (direction.z * direction.z));
@@ -602,7 +602,7 @@ public:
 		m_mtrl.Emissive = d3d::BLACK;
 		m_mtrl.Power = 5.0f;
 
-		// ÆùÆ® ¼³Á¤
+		// í°íŠ¸ ì„¤ì •
 		HDC hdc = CreateCompatibleDC(0);
 		HFONT hFont;
 		HFONT hFontOld;
@@ -621,7 +621,7 @@ public:
 		lf.lfClipPrecision = 0;
 		lf.lfQuality = 0;
 		lf.lfPitchAndFamily = 0;
-		lf.lfFaceName, TEXT("¸¼Àº°íµñ");
+		lf.lfFaceName, TEXT("ë§‘ì€ê³ ë”•");
 		hFont = CreateFontIndirect(&lf);
 		hFontOld = (HFONT)SelectObject(hdc, hFont);
 
@@ -648,7 +648,7 @@ public:
 		m_pBoundMesh->DrawSubset(0);
 	}
 
-	// ÅØ½ºÆ® À§Ä¡, °¢µµ, Å©±â ¼³Á¤
+	// í…ìŠ¤íŠ¸ ìœ„ì¹˜, ê°ë„, í¬ê¸° ì„¤ì •
 	void setTransform(float x, float y, float z, float angle, float scale) {
 		D3DXMATRIX m;
 		m_scale = scale;
@@ -779,10 +779,10 @@ CSphere	g_sphere[4];
 CSphere	g_target_blueball;
 CLight	g_light;
 
-CPath path;				// °øÀÌ ¿òÁ÷ÀÏ °æ·Î
-bool isTarget = false;	// ¸¶¿ì½º ¿ìÅ¬¸¯ ¿©ºÎ
-CStick stick;			// ´ç±¸Ã¤
-CText text;				// ÅØ½ºÆ®
+CPath path;				// ê³µì´ ì›€ì§ì¼ ê²½ë¡œ
+bool isTarget = false;	// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ ì—¬ë¶€
+CStick stick;			// ë‹¹êµ¬ì±„
+CText text;				// í…ìŠ¤íŠ¸
 
 double g_camera_pos[3] = { 0.0, 5.0, -8.0 };
 
@@ -829,11 +829,11 @@ bool Setup()
 	if (false == g_target_blueball.create(Device, d3d::BLUE)) return false;
 	g_target_blueball.setCenter(.0f, (float)M_RADIUS, .0f);
 
-	// °æ·Î »ı¼º
+	// ê²½ë¡œ ìƒì„±
 	path.create(Device);
-	// ´ç±¸Ã¤ »ı¼º
+	// ë‹¹êµ¬ì±„ ìƒì„±
 	stick.create(Device, 0.05f, 0.1f, 7);
-	// ÅØ½ºÆ® »ı¼º
+	// í…ìŠ¤íŠ¸ ìƒì„±
 	text.create(Device, "score");
 	text.setTransform(-1, 0.2f, 3.2f, PI / 2, 0.5f);
 
@@ -920,18 +920,18 @@ bool Display(float timeDelta)
 		g_target_blueball.draw(Device, g_mWorld);
 		g_light.draw(Device);
 
-		if (stick.isMove()) {	// ´ç±¸Ã¤°¡ ¿òÁ÷ÀÌ´Â ÁßÀÌ¶ó¸é
-			stick.stickUpdate(timeDelta);	// ´ç±¸Ã¤ ÀÌµ¿
-			stick.hitBy(g_sphere[3]);		// Èò °ø°ú Ãæµ¹ °Ë»ç
-			stick.draw(Device, g_mWorld);	// ´ç±¸Ã¤ ±×¸®±â
+		if (stick.isMove()) {	// ë‹¹êµ¬ì±„ê°€ ì›€ì§ì´ëŠ” ì¤‘ì´ë¼ë©´
+			stick.stickUpdate(timeDelta);	// ë‹¹êµ¬ì±„ ì´ë™
+			stick.hitBy(g_sphere[3]);		// í° ê³µê³¼ ì¶©ëŒ ê²€ì‚¬
+			stick.draw(Device, g_mWorld);	// ë‹¹êµ¬ì±„ ê·¸ë¦¬ê¸°
 		}
-		else if (isTarget) {		// ´ç±¸Ã¤°¡ ¿òÁ÷ÀÌÁö ¾Ê°í ¸¶¿ì½º ¿ìÅ¬¸¯ ÁßÀÌ¶ó¸é
-			path.draw(Device, g_mWorld, g_sphere[3].getCenter(), g_target_blueball.getCenter()); // °æ·Î ±×¸®±â
-			stick.setTarget(g_sphere[3].getCenter(), g_target_blueball.getCenter());		// Èò °ø°ú ÆÄ¶õ °ø¿¡ ¸ÂÃç ´ç±¸Ã¤ À§Ä¡, °¢µµ ¼³Á¤
-			stick.draw(Device, g_mWorld);				// ´ç±¸Ã¤ ±×¸®±â
+		else if (isTarget) {		// ë‹¹êµ¬ì±„ê°€ ì›€ì§ì´ì§€ ì•Šê³  ë§ˆìš°ìŠ¤ ìš°í´ë¦­ ì¤‘ì´ë¼ë©´
+			path.draw(Device, g_mWorld, g_sphere[3].getCenter(), g_target_blueball.getCenter()); // ê²½ë¡œ ê·¸ë¦¬ê¸°
+			stick.setTarget(g_sphere[3].getCenter(), g_target_blueball.getCenter());		// í° ê³µê³¼ íŒŒë€ ê³µì— ë§ì¶° ë‹¹êµ¬ì±„ ìœ„ì¹˜, ê°ë„ ì„¤ì •
+			stick.draw(Device, g_mWorld);				// ë‹¹êµ¬ì±„ ê·¸ë¦¬ê¸°
 		}
 
-		text.draw(Device, g_mWorld);		// ÅØ½ºÆ® ±×¸®±â	
+		text.draw(Device, g_mWorld);		// í…ìŠ¤íŠ¸ ê·¸ë¦¬ê¸°	
 
 		Device->EndScene();
 		Device->Present(0, 0, 0, 0);
@@ -968,21 +968,21 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			}
 			break;
 		case VK_SPACE:
-			// ¸¶¿ì½º ¿ìÅ¬¸¯ + Èò °øÀÌ ¸ØÃçÀÖÀ» ¶§¸¸
+			// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ + í° ê³µì´ ë©ˆì¶°ìˆì„ ë•Œë§Œ
 			if (isTarget && abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01) {
-				isTarget = false; // ¸¶¿ì½º ¿ìÅ¬¸¯ ÇØÁ¦
+				isTarget = false; // ë§ˆìš°ìŠ¤ ìš°í´ë¦­ í•´ì œ
 
 				D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
 				D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
 				double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
-					pow(targetpos.z - whitepos.z, 2)));		// ±âº» 1 »çºĞ¸é
-				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 »çºĞ¸é
-				if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 »çºĞ¸é
-				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0) { theta = PI + theta; } // 3 »çºĞ¸é
+					pow(targetpos.z - whitepos.z, 2)));		// ê¸°ë³¸ 1 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0) { theta = PI + theta; } // 3 ì‚¬ë¶„ë©´
 				double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
 				//g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
 
-				stick.setPower(distance * cos(theta), distance * sin(theta));		// ´ç±¸Ã¤ ¿òÁ÷ÀÓ
+				stick.setPower(distance * cos(theta), distance * sin(theta));		// ë‹¹êµ¬ì±„ ì›€ì§ì„
 			}
 			break;
 
@@ -999,7 +999,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 		if (LOWORD(wParam) & MK_LBUTTON) {
 
-			isTarget = false;		// ¸¶¿ì½º ¿ìÅ¬¸¯ ÇØÁ¦
+			isTarget = false;		// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ í•´ì œ
 
 			if (isReset) {
 				isReset = false;
@@ -1030,10 +1030,10 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 		else {
 			isReset = true;
 
-			isTarget = false;		// ¸¶¿ì½º ¿ìÅ¬¸¯ ÇØÁ¦
+			isTarget = false;		// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ í•´ì œ
 			if (LOWORD(wParam) & MK_RBUTTON) {
 				if (abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01 && !stick.isMove()) {
-					isTarget = true;	// Èò °ø°ú ´ç±¸Ã¤°¡ ¸ØÃçÀÖÀ» ¶§¸¸ true
+					isTarget = true;	// í° ê³µê³¼ ë‹¹êµ¬ì±„ê°€ ë©ˆì¶°ìˆì„ ë•Œë§Œ true
 				}
 
 				dx = (old_x - new_x);// * 0.01f;

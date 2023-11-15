@@ -1,0 +1,3 @@
+C:\Users\jy\Desktop\oop\oop16_proj3\Debug\VirtualLego.exe
+C:\Users\jy\source\repos\OOP\Debug\VirtualLego.exe
+C:\Users\jy\source\repos\OOP\oop16_proj3\Debug\VirtualLego.exe

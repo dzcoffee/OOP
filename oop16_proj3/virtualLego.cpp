@@ -2,7 +2,7 @@
 //
 // File: virtualLego.cpp
 //
-// Original Author: ¹ÚÃ¢Çö Chang-hyeon Park, 
+// Original Author: ë°•ì°½í˜„ Chang-hyeon Park, 
 // Modified by Bong-Soo Sohn and Dong-Jun Kim
 // 
 // Originally programmed for Virtual LEGO. 
@@ -16,18 +16,19 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cassert>
+#include <math.h>
 
 IDirect3DDevice9* Device = NULL;
 
 // window size
-const int Width  = 1024;
+const int Width = 1024;
 const int Height = 768;
 
 // There are four balls
 // initialize the position (coordinate) of each ball (ball0 ~ ball3)
-const float spherePos[4][2] = { {-2.7f,0} , {+2.4f,0} , {3.3f,0} , {-2.7f,-0.9f}}; 
+const float spherePos[4][2] = { {-2.7f,0} , {+2.4f,0} , {3.3f,0} , {-2.7f,-0.9f} };
 // initialize the color of each ball (ball0 ~ ball3)
-const D3DXCOLOR sphereColor[4] = {d3d::RED, d3d::RED, d3d::YELLOW, d3d::WHITE};
+const D3DXCOLOR sphereColor[4] = { d3d::RED, d3d::RED, d3d::YELLOW, d3d::WHITE };
 
 // -----------------------------------------------------------------------------
 // Transform matrices
@@ -46,82 +47,96 @@ D3DXMATRIX g_mProj;
 // -----------------------------------------------------------------------------
 
 class CSphere {
-private :
+private:
 	float					center_x, center_y, center_z;
-    float                   m_radius;
+	float                   m_radius;
 	float					m_velocity_x;
 	float					m_velocity_z;
 
 public:
-    CSphere(void)
-    {
-        D3DXMatrixIdentity(&m_mLocal);
-        ZeroMemory(&m_mtrl, sizeof(m_mtrl));
-        m_radius = 0;
+	CSphere(void)
+	{
+		D3DXMatrixIdentity(&m_mLocal);
+		ZeroMemory(&m_mtrl, sizeof(m_mtrl));
+		m_radius = 0;
 		m_velocity_x = 0;
 		m_velocity_z = 0;
-        m_pSphereMesh = NULL;
-    }
-    ~CSphere(void) {}
+		m_pSphereMesh = NULL;
+	}
+	~CSphere(void) {}
 
 public:
-    bool create(IDirect3DDevice9* pDevice, D3DXCOLOR color = d3d::WHITE)
-    {
-        if (NULL == pDevice)
-            return false;
-		
-        m_mtrl.Ambient  = color;
-        m_mtrl.Diffuse  = color;
-        m_mtrl.Specular = color;
-        m_mtrl.Emissive = d3d::BLACK;
-        m_mtrl.Power    = 5.0f;
-		
-        if (FAILED(D3DXCreateSphere(pDevice, getRadius(), 50, 50, &m_pSphereMesh, NULL)))
-            return false;
-        return true;
-    }
-	
-    void destroy(void)
-    {
-        if (m_pSphereMesh != NULL) {
-            m_pSphereMesh->Release();
-            m_pSphereMesh = NULL;
-        }
-    }
+	bool create(IDirect3DDevice9* pDevice, D3DXCOLOR color = d3d::WHITE)
+	{
+		if (NULL == pDevice)
+			return false;
 
-    void draw(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld)
-    {
-        if (NULL == pDevice)
-            return;
-        pDevice->SetTransform(D3DTS_WORLD, &mWorld);
-        pDevice->MultiplyTransform(D3DTS_WORLD, &m_mLocal);
-        pDevice->SetMaterial(&m_mtrl);
+		m_mtrl.Ambient = color;
+		m_mtrl.Diffuse = color;
+		m_mtrl.Specular = color;
+		m_mtrl.Emissive = d3d::BLACK;
+		m_mtrl.Power = 5.0f;
+
+		if (FAILED(D3DXCreateSphere(pDevice, getRadius(), 50, 50, &m_pSphereMesh, NULL)))
+			return false;
+		return true;
+	}
+
+	void destroy(void)
+	{
+		if (m_pSphereMesh != NULL) {
+			m_pSphereMesh->Release();
+			m_pSphereMesh = NULL;
+		}
+	}
+
+	void draw(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld)
+	{
+		if (NULL == pDevice)
+			return;
+		pDevice->SetTransform(D3DTS_WORLD, &mWorld);
+		pDevice->MultiplyTransform(D3DTS_WORLD, &m_mLocal);
+		pDevice->SetMaterial(&m_mtrl);
 		m_pSphereMesh->DrawSubset(0);
-    }
-	
-    bool hasIntersected(CSphere& ball) 
+	}
+
+	bool hasIntersected(CSphere& ball)
 	{
 		// Insert your code here.
-
-		return false;
-	}
-	
-	void hitBy(CSphere& ball) 
-	{ 
-		// Insert your code here.
+		double dist = sqrt(pow(center_x - ball.getPos_X(), 2) + pow(center_z - ball.getPos_Z(), 2));
+		if (dist < 2 * getRadius() - 0.02) return true;
+		else return false;
 	}
 
-	void ballUpdate(float timeDiff) 
+	void hitBy(CSphere& ball)
+	{
+		if (hasIntersected(ball))
+		{
+			// Calculate relative velocity
+			float relVelX = ball.getVelocity_X() - getVelocity_X();
+			float relVelZ = ball.getVelocity_Z() - getVelocity_Z();
+			// Calculate the normal vector at the collision point
+			D3DXVECTOR3 normal = ball.getCenter() - getCenter();
+			D3DXVec3Normalize(&normal, &normal);
+			// Calculate impulse based on the normal and relative velocity
+			float impulse = relVelX * normal.x + relVelZ * normal.z;
+			// Update velocities
+			setPower(getVelocity_X() + impulse * normal.x, getVelocity_Z() + impulse * normal.z);
+			ball.setPower(ball.getVelocity_X() - impulse * normal.x, ball.getVelocity_Z() - impulse * normal.z);
+		}
+	}
+
+	void ballUpdate(float timeDiff)
 	{
 		const float TIME_SCALE = 3.3;
 		D3DXVECTOR3 cord = this->getCenter();
 		double vx = abs(this->getVelocity_X());
 		double vz = abs(this->getVelocity_Z());
 
-		if(vx > 0.01 || vz > 0.01)
+		if (vx > 0.0001 || vz > 0.0001)
 		{
-			float tX = cord.x + TIME_SCALE*timeDiff*m_velocity_x;
-			float tZ = cord.z + TIME_SCALE*timeDiff*m_velocity_z;
+			float tX = cord.x + TIME_SCALE * timeDiff * m_velocity_x;
+			float tZ = cord.z + TIME_SCALE * timeDiff * m_velocity_z;
 
 			//correction of position of ball
 			// Please uncomment this part because this correction of ball position is necessary when a ball collides with a wall
@@ -133,19 +148,22 @@ public:
 				tZ = -3 + M_RADIUS;
 			else if(tZ >= (3 - M_RADIUS))
 				tZ = 3 - M_RADIUS;*/
-			
+
 			this->setCenter(tX, cord.y, tZ);
 		}
-		else { this->setPower(0,0);}
+		else { this->setPower(0, 0); }
 		//this->setPower(this->getVelocity_X() * DECREASE_RATE, this->getVelocity_Z() * DECREASE_RATE);
-		double rate = 1 -  (1 - DECREASE_RATE)*timeDiff * 400;
-		if(rate < 0 )
+		double rate = 1 - (1 - DECREASE_RATE) * timeDiff * 400;
+		if (rate < 0)
 			rate = 0;
 		this->setPower(getVelocity_X() * rate, getVelocity_Z() * rate);
 	}
 
-	double getVelocity_X() { return this->m_velocity_x;	}
+	double getVelocity_X() { return this->m_velocity_x; }
 	double getVelocity_Z() { return this->m_velocity_z; }
+	double getPos_X() { return this->center_x; }
+	double getPos_Y() { return this->center_y; }
+	double getPos_Z() { return this->center_z; }
 
 	void setPower(double vx, double vz)
 	{
@@ -156,25 +174,25 @@ public:
 	void setCenter(float x, float y, float z)
 	{
 		D3DXMATRIX m;
-		center_x=x;	center_y=y;	center_z=z;
+		center_x = x;	center_y = y;	center_z = z;
 		D3DXMatrixTranslation(&m, x, y, z);
 		setLocalTransform(m);
 	}
-	
-	float getRadius(void)  const { return (float)(M_RADIUS);  }
-    const D3DXMATRIX& getLocalTransform(void) const { return m_mLocal; }
-    void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
-    D3DXVECTOR3 getCenter(void) const
-    {
-        D3DXVECTOR3 org(center_x, center_y, center_z);
-        return org;
-    }
-	
+
+	float getRadius(void)  const { return (float)(M_RADIUS); }
+	const D3DXMATRIX& getLocalTransform(void) const { return m_mLocal; }
+	void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
+	D3DXVECTOR3 getCenter(void) const
+	{
+		D3DXVECTOR3 org(center_x, center_y, center_z);
+		return org;
+	}
+
 private:
-    D3DXMATRIX              m_mLocal;
-    D3DMATERIAL9            m_mtrl;
-    ID3DXMesh*              m_pSphereMesh;
-	
+	D3DXMATRIX              m_mLocal;
+	D3DMATERIAL9            m_mtrl;
+	ID3DXMesh* m_pSphereMesh;
+
 };
 
 
@@ -186,60 +204,60 @@ private:
 class CWall {
 
 private:
-	
-    float					m_x;
+
+	float					m_x;
 	float					m_z;
 	float                   m_width;
-    float                   m_depth;
+	float                   m_depth;
 	float					m_height;
-	
+
 public:
-    CWall(void)
-    {
-        D3DXMatrixIdentity(&m_mLocal);
-        ZeroMemory(&m_mtrl, sizeof(m_mtrl));
-        m_width = 0;
-        m_depth = 0;
-        m_pBoundMesh = NULL;
-    }
-    ~CWall(void) {}
+	CWall(void)
+	{
+		D3DXMatrixIdentity(&m_mLocal);
+		ZeroMemory(&m_mtrl, sizeof(m_mtrl));
+		m_width = 0;
+		m_depth = 0;
+		m_pBoundMesh = NULL;
+	}
+	~CWall(void) {}
 public:
-    bool create(IDirect3DDevice9* pDevice, float ix, float iz, float iwidth, float iheight, float idepth, D3DXCOLOR color = d3d::WHITE)
-    {
-        if (NULL == pDevice)
-            return false;
-		
-        m_mtrl.Ambient  = color;
-        m_mtrl.Diffuse  = color;
-        m_mtrl.Specular = color;
-        m_mtrl.Emissive = d3d::BLACK;
-        m_mtrl.Power    = 5.0f;
-		
-        m_width = iwidth;
-        m_depth = idepth;
-		
-        if (FAILED(D3DXCreateBox(pDevice, iwidth, iheight, idepth, &m_pBoundMesh, NULL)))
-            return false;
-        return true;
-    }
-    void destroy(void)
-    {
-        if (m_pBoundMesh != NULL) {
-            m_pBoundMesh->Release();
-            m_pBoundMesh = NULL;
-        }
-    }
-    void draw(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld)
-    {
-        if (NULL == pDevice)
-            return;
-        pDevice->SetTransform(D3DTS_WORLD, &mWorld);
-        pDevice->MultiplyTransform(D3DTS_WORLD, &m_mLocal);
-        pDevice->SetMaterial(&m_mtrl);
+	bool create(IDirect3DDevice9* pDevice, float ix, float iz, float iwidth, float iheight, float idepth, D3DXCOLOR color = d3d::WHITE)
+	{
+		if (NULL == pDevice)
+			return false;
+
+		m_mtrl.Ambient = color;
+		m_mtrl.Diffuse = color;
+		m_mtrl.Specular = color;
+		m_mtrl.Emissive = d3d::BLACK;
+		m_mtrl.Power = 5.0f;
+
+		m_width = iwidth;
+		m_depth = idepth;
+
+		if (FAILED(D3DXCreateBox(pDevice, iwidth, iheight, idepth, &m_pBoundMesh, NULL)))
+			return false;
+		return true;
+	}
+	void destroy(void)
+	{
+		if (m_pBoundMesh != NULL) {
+			m_pBoundMesh->Release();
+			m_pBoundMesh = NULL;
+		}
+	}
+	void draw(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld)
+	{
+		if (NULL == pDevice)
+			return;
+		pDevice->SetTransform(D3DTS_WORLD, &mWorld);
+		pDevice->MultiplyTransform(D3DTS_WORLD, &m_mLocal);
+		pDevice->SetMaterial(&m_mtrl);
 		m_pBoundMesh->DrawSubset(0);
-    }
-	
-	bool hasIntersected(CSphere& ball) 
+	}
+
+	bool hasIntersected(CSphere& ball)
 	{
 		auto ballPos = ball.getCenter();
 		if (abs(ballPos.x - m_x) < (m_width / 2) + ball.getRadius() && abs(ballPos.z - m_z) < (m_depth / 2) + ball.getRadius()) {
@@ -248,22 +266,22 @@ public:
 		else return false;
 	}
 
-	void hitBy(CSphere& ball) 
+	void hitBy(CSphere& ball)
 	{
 		if (hasIntersected(ball)) {
-			if (m_width > m_depth) {												// °¡·Î¹æÇâ º®ÀÏ ¶§
-				if (ball.getVelocity_Z() * (m_z - ball.getCenter().z) > 0) {		// °øÀÌ º®À» ÇâÇØ ¿òÁ÷ÀÌ°í ÀÖÀ» ¶§¸¸ Ãæµ¹ ÆÇÁ¤
-					ball.setPower(ball.getVelocity_X(), -ball.getVelocity_Z());		// °øÀÇ ¼ÓµµÀÇ z¼ººĞ ºÎÈ£ ¹İÀü
+			if (m_width > m_depth) {												// ê°€ë¡œë°©í–¥ ë²½ì¼ ë•Œ
+				if (ball.getVelocity_Z() * (m_z - ball.getCenter().z) > 0) {		// ê³µì´ ë²½ì„ í–¥í•´ ì›€ì§ì´ê³  ìˆì„ ë•Œë§Œ ì¶©ëŒ íŒì •
+					ball.setPower(0.7*ball.getVelocity_X(), -0.7*ball.getVelocity_Z());		// ê³µì˜ ì†ë„ì˜ zì„±ë¶„ ë¶€í˜¸ ë°˜ì „
 				}
 			}
-			else {																	// ¼¼·Î¹æÇâ º®ÀÏ ¶§
-				if (ball.getVelocity_X() * (m_x - ball.getCenter().x) > 0) {		// °øÀÌ º®À» ÇâÇØ ¿òÁ÷ÀÌ°í ÀÖÀ» ¶§¸¸ Ãæµ¹ ÆÇÁ¤
-					ball.setPower(-ball.getVelocity_X(), ball.getVelocity_Z());		// °øÀÇ ¼ÓµµÀÇ x¼ººĞ ºÎÈ£ ¹İÀü
+			else {																	// ì„¸ë¡œë°©í–¥ ë²½ì¼ ë•Œ
+				if (ball.getVelocity_X() * (m_x - ball.getCenter().x) > 0) {		// ê³µì´ ë²½ì„ í–¥í•´ ì›€ì§ì´ê³  ìˆì„ ë•Œë§Œ ì¶©ëŒ íŒì •
+					ball.setPower(-0.7*ball.getVelocity_X(), 0.7*ball.getVelocity_Z());		// ê³µì˜ ì†ë„ì˜ xì„±ë¶„ ë¶€í˜¸ ë°˜ì „
 				}
 			}
 		}
-	}    
-	
+	}
+
 	void setPosition(float x, float y, float z)
 	{
 		D3DXMATRIX m;
@@ -273,20 +291,20 @@ public:
 		D3DXMatrixTranslation(&m, x, y, z);
 		setLocalTransform(m);
 	}
-	
-    float getHeight(void) const { return M_HEIGHT; }
-	
-	
-	
-private :
-    void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
-	
+
+	float getHeight(void) const { return M_HEIGHT; }
+
+
+
+private:
+	void setLocalTransform(const D3DXMATRIX& mLocal) { m_mLocal = mLocal; }
+
 	D3DXMATRIX              m_mLocal;
-    D3DMATERIAL9            m_mtrl;
-    ID3DXMesh*              m_pBoundMesh;
+	D3DMATERIAL9            m_mtrl;
+	ID3DXMesh* m_pBoundMesh;
 };
 
-// °øÀÌ ¿òÁ÷ÀÏ °æ·Î Ç¥½Ã
+// ê³µì´ ì›€ì§ì¼ ê²½ë¡œ í‘œì‹œ
 class CPath {
 private:
 	class CDot {
@@ -370,7 +388,7 @@ private:
 	const float width = 9;
 	const float depth = 6.24f;
 public:
-	// °ø »ı¼º
+	// ê³µ ìƒì„±
 	void create(IDirect3DDevice9* pDevice) {
 		if (NULL == pDevice)
 			return;
@@ -378,9 +396,9 @@ public:
 			dots[i].create(pDevice);
 		}
 	}
-	// startPos¿¡¼­ endPos ¹æÇâÀ¸·Î º®±îÁö 0.2 °£°İÀ¸·Î °øÀ» ±×¸²
-	void draw(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld, D3DXVECTOR3 startPos, D3DXVECTOR3 endPos){
-		auto direction = endPos - startPos;																				
+	// startPosì—ì„œ endPos ë°©í–¥ìœ¼ë¡œ ë²½ê¹Œì§€ 0.2 ê°„ê²©ìœ¼ë¡œ ê³µì„ ê·¸ë¦¼
+	void draw(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld, D3DXVECTOR3 startPos, D3DXVECTOR3 endPos) {
+		auto direction = endPos - startPos;
 		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y) + (direction.z * direction.z));
 		direction /= length;
 		direction *= 0.2f;
@@ -395,7 +413,7 @@ public:
 	}
 };
 
-// ´ç±¸Ã¤
+// ë‹¹êµ¬ì±„
 class CStick {
 private:
 	float m_x;
@@ -428,7 +446,7 @@ public:
 		m_mtrl.Power = 5.0f;
 
 		m_length = length;
-		// radius1ÀÌ radius2º¸´Ù Å©´Ù¸é µÎ °ªÀ» ¹Ù²Ş
+		// radius1ì´ radius2ë³´ë‹¤ í¬ë‹¤ë©´ ë‘ ê°’ì„ ë°”ê¿ˆ
 		if (radius2 < radius1) {
 			float temp = radius1;
 			radius1 = radius2;
@@ -465,7 +483,7 @@ public:
 
 	void hitBy(CSphere& ball)
 	{
-		// °ø°ú ºÎµúÈ÷¸é °øÀ» ¿òÁ÷ÀÌ°í ´ç±¸Ã¤´Â ¸ØÃã
+		// ê³µê³¼ ë¶€ë”ªíˆë©´ ê³µì„ ì›€ì§ì´ê³  ë‹¹êµ¬ì±„ëŠ” ë©ˆì¶¤
 		if (hasIntersected(ball)) {
 			ball.setPower(m_velocity_x, m_velocity_z);
 			setPower(0, 0);
@@ -473,13 +491,13 @@ public:
 		}
 	}
 
-	// ´ç±¸Ã¤ÀÇ À§Ä¡, °¢µµ ¼³Á¤
+	// ë‹¹êµ¬ì±„ì˜ ìœ„ì¹˜, ê°ë„ ì„¤ì •
 	void setTransform(float x, float y, float z, float angle) {
 		setRotation(angle);
 		setPosition(x, y, z);
 	}
 
-	// ´ç±¸Ã¤ ÀÌµ¿
+	// ë‹¹êµ¬ì±„ ì´ë™
 	void stickUpdate(float timeDiff)
 	{
 		const float TIME_SCALE = 3.3;
@@ -513,12 +531,12 @@ public:
 		return org;
 	}
 
-	// ´ç±¸Ã¤°¡ ¿òÁ÷ÀÌ´Â ÁßÀÌ¸é true
+	// ë‹¹êµ¬ì±„ê°€ ì›€ì§ì´ëŠ” ì¤‘ì´ë©´ true
 	bool isMove() const {
 		return isMoving;
 	}
-	
-	// startPos¿¡¼­ endPos ¹æÇâÀ¸·Î ´ç±¸Ã¤ÀÇ °¢µµ¿Í À§Ä¡ ¼³Á¤
+
+	// startPosì—ì„œ endPos ë°©í–¥ìœ¼ë¡œ ë‹¹êµ¬ì±„ì˜ ê°ë„ì™€ ìœ„ì¹˜ ì„¤ì •
 	void setTarget(D3DXVECTOR3 startPos, D3DXVECTOR3 endPos) {
 		auto direction = endPos - startPos;
 		float length = sqrt((direction.x * direction.x) + (direction.y * direction.y) + (direction.z * direction.z));
@@ -573,7 +591,7 @@ public:
 	}
 	~CText(void) {}
 
-	bool create(IDirect3DDevice9* pDevice, char* text, D3DXCOLOR color = d3d::WHITE)
+	bool create(IDirect3DDevice9* pDevice, const char* text, D3DXCOLOR color = d3d::WHITE)
 	{
 		if (NULL == pDevice)
 			return false;
@@ -584,7 +602,7 @@ public:
 		m_mtrl.Emissive = d3d::BLACK;
 		m_mtrl.Power = 5.0f;
 
-		// ÆùÆ® ¼³Á¤
+		// í°íŠ¸ ì„¤ì •
 		HDC hdc = CreateCompatibleDC(0);
 		HFONT hFont;
 		HFONT hFontOld;
@@ -603,7 +621,7 @@ public:
 		lf.lfClipPrecision = 0;
 		lf.lfQuality = 0;
 		lf.lfPitchAndFamily = 0;
-		lf.lfFaceName, TEXT("¸¼Àº°íµñ");
+		lf.lfFaceName, TEXT("ë§‘ì€ê³ ë”•");
 		hFont = CreateFontIndirect(&lf);
 		hFontOld = (HFONT)SelectObject(hdc, hFont);
 
@@ -629,8 +647,8 @@ public:
 		pDevice->SetMaterial(&m_mtrl);
 		m_pBoundMesh->DrawSubset(0);
 	}
-	
-	// ÅØ½ºÆ® À§Ä¡, °¢µµ, Å©±â ¼³Á¤
+
+	// í…ìŠ¤íŠ¸ ìœ„ì¹˜, ê°ë„, í¬ê¸° ì„¤ì •
 	void setTransform(float x, float y, float z, float angle, float scale) {
 		D3DXMATRIX m;
 		m_scale = scale;
@@ -671,84 +689,84 @@ private:
 
 class CLight {
 public:
-    CLight(void)
-    {
-        static DWORD i = 0;
-        m_index = i++;
-        D3DXMatrixIdentity(&m_mLocal);
-        ::ZeroMemory(&m_lit, sizeof(m_lit));
-        m_pMesh = NULL;
-        m_bound._center = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
-        m_bound._radius = 0.0f;
-    }
-    ~CLight(void) {}
+	CLight(void)
+	{
+		static DWORD i = 0;
+		m_index = i++;
+		D3DXMatrixIdentity(&m_mLocal);
+		::ZeroMemory(&m_lit, sizeof(m_lit));
+		m_pMesh = NULL;
+		m_bound._center = D3DXVECTOR3(0.0f, 0.0f, 0.0f);
+		m_bound._radius = 0.0f;
+	}
+	~CLight(void) {}
 public:
-    bool create(IDirect3DDevice9* pDevice, const D3DLIGHT9& lit, float radius = 0.1f)
-    {
-        if (NULL == pDevice)
-            return false;
-        if (FAILED(D3DXCreateSphere(pDevice, radius, 10, 10, &m_pMesh, NULL)))
-            return false;
-		
-        m_bound._center = lit.Position;
-        m_bound._radius = radius;
-		
-        m_lit.Type          = lit.Type;
-        m_lit.Diffuse       = lit.Diffuse;
-        m_lit.Specular      = lit.Specular;
-        m_lit.Ambient       = lit.Ambient;
-        m_lit.Position      = lit.Position;
-        m_lit.Direction     = lit.Direction;
-        m_lit.Range         = lit.Range;
-        m_lit.Falloff       = lit.Falloff;
-        m_lit.Attenuation0  = lit.Attenuation0;
-        m_lit.Attenuation1  = lit.Attenuation1;
-        m_lit.Attenuation2  = lit.Attenuation2;
-        m_lit.Theta         = lit.Theta;
-        m_lit.Phi           = lit.Phi;
-        return true;
-    }
-    void destroy(void)
-    {
-        if (m_pMesh != NULL) {
-            m_pMesh->Release();
-            m_pMesh = NULL;
-        }
-    }
-    bool setLight(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld)
-    {
-        if (NULL == pDevice)
-            return false;
-		
-        D3DXVECTOR3 pos(m_bound._center);
-        D3DXVec3TransformCoord(&pos, &pos, &m_mLocal);
-        D3DXVec3TransformCoord(&pos, &pos, &mWorld);
-        m_lit.Position = pos;
-		
-        pDevice->SetLight(m_index, &m_lit);
-        pDevice->LightEnable(m_index, TRUE);
-        return true;
-    }
+	bool create(IDirect3DDevice9* pDevice, const D3DLIGHT9& lit, float radius = 0.1f)
+	{
+		if (NULL == pDevice)
+			return false;
+		if (FAILED(D3DXCreateSphere(pDevice, radius, 10, 10, &m_pMesh, NULL)))
+			return false;
 
-    void draw(IDirect3DDevice9* pDevice)
-    {
-        if (NULL == pDevice)
-            return;
-        D3DXMATRIX m;
-        D3DXMatrixTranslation(&m, m_lit.Position.x, m_lit.Position.y, m_lit.Position.z);
-        pDevice->SetTransform(D3DTS_WORLD, &m);
-        pDevice->SetMaterial(&d3d::WHITE_MTRL);
-        m_pMesh->DrawSubset(0);
-    }
+		m_bound._center = lit.Position;
+		m_bound._radius = radius;
 
-    D3DXVECTOR3 getPosition(void) const { return D3DXVECTOR3(m_lit.Position); }
+		m_lit.Type = lit.Type;
+		m_lit.Diffuse = lit.Diffuse;
+		m_lit.Specular = lit.Specular;
+		m_lit.Ambient = lit.Ambient;
+		m_lit.Position = lit.Position;
+		m_lit.Direction = lit.Direction;
+		m_lit.Range = lit.Range;
+		m_lit.Falloff = lit.Falloff;
+		m_lit.Attenuation0 = lit.Attenuation0;
+		m_lit.Attenuation1 = lit.Attenuation1;
+		m_lit.Attenuation2 = lit.Attenuation2;
+		m_lit.Theta = lit.Theta;
+		m_lit.Phi = lit.Phi;
+		return true;
+	}
+	void destroy(void)
+	{
+		if (m_pMesh != NULL) {
+			m_pMesh->Release();
+			m_pMesh = NULL;
+		}
+	}
+	bool setLight(IDirect3DDevice9* pDevice, const D3DXMATRIX& mWorld)
+	{
+		if (NULL == pDevice)
+			return false;
+
+		D3DXVECTOR3 pos(m_bound._center);
+		D3DXVec3TransformCoord(&pos, &pos, &m_mLocal);
+		D3DXVec3TransformCoord(&pos, &pos, &mWorld);
+		m_lit.Position = pos;
+
+		pDevice->SetLight(m_index, &m_lit);
+		pDevice->LightEnable(m_index, TRUE);
+		return true;
+	}
+
+	void draw(IDirect3DDevice9* pDevice)
+	{
+		if (NULL == pDevice)
+			return;
+		D3DXMATRIX m;
+		D3DXMatrixTranslation(&m, m_lit.Position.x, m_lit.Position.y, m_lit.Position.z);
+		pDevice->SetTransform(D3DTS_WORLD, &m);
+		pDevice->SetMaterial(&d3d::WHITE_MTRL);
+		m_pMesh->DrawSubset(0);
+	}
+
+	D3DXVECTOR3 getPosition(void) const { return D3DXVECTOR3(m_lit.Position); }
 
 private:
-    DWORD               m_index;
-    D3DXMATRIX          m_mLocal;
-    D3DLIGHT9           m_lit;
-    ID3DXMesh*          m_pMesh;
-    d3d::BoundingSphere m_bound;
+	DWORD               m_index;
+	D3DXMATRIX          m_mLocal;
+	D3DLIGHT9           m_lit;
+	ID3DXMesh* m_pMesh;
+	d3d::BoundingSphere m_bound;
 };
 
 
@@ -761,12 +779,14 @@ CSphere	g_sphere[4];
 CSphere	g_target_blueball;
 CLight	g_light;
 
-CPath path;				// °øÀÌ ¿òÁ÷ÀÏ °æ·Î
-bool isTarget = false;	// ¸¶¿ì½º ¿ìÅ¬¸¯ ¿©ºÎ
-CStick stick;			// ´ç±¸Ã¤
-CText text;				// ÅØ½ºÆ®
+CPath path;				// ê³µì´ ì›€ì§ì¼ ê²½ë¡œ
+bool isTarget = false;	// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ ì—¬ë¶€
+CStick stick;			// ë‹¹êµ¬ì±„
+CText text;				// í…ìŠ¤íŠ¸
+CText scoreText;		// ì ìˆ˜ í…ìŠ¤íŠ¸
+int score = 0;			// ì ìˆ˜ ì €ì¥
 
-double g_camera_pos[3] = {0.0, 5.0, -8.0};
+double g_camera_pos[3] = { 0.0, 5.0, -8.0 };
 
 // -----------------------------------------------------------------------------
 // Functions
@@ -781,15 +801,15 @@ void destroyAllLegoBlock(void)
 bool Setup()
 {
 	int i;
-	
-    D3DXMatrixIdentity(&g_mWorld);
-    D3DXMatrixIdentity(&g_mView);
-    D3DXMatrixIdentity(&g_mProj);
-		
+
+	D3DXMatrixIdentity(&g_mWorld);
+	D3DXMatrixIdentity(&g_mView);
+	D3DXMatrixIdentity(&g_mProj);
+
 	// create plane and set the position
-    if (false == g_legoPlane.create(Device, -1, -1, 9, 0.03f, 6, d3d::GREEN)) return false;
-    g_legoPlane.setPosition(0.0f, -0.0006f / 5, 0.0f);
-	
+	if (false == g_legoPlane.create(Device, -1, -1, 9, 0.03f, 6, d3d::GREEN)) return false;
+	g_legoPlane.setPosition(0.0f, -0.0006f / 5, 0.0f);
+
 	// create walls and set the position. note that there are four walls
 	if (false == g_legowall[0].create(Device, -1, -1, 9, 0.3f, 0.12f, d3d::DARKRED)) return false;
 	g_legowall[0].setPosition(0.0f, 0.12f, 3.06f);
@@ -801,68 +821,71 @@ bool Setup()
 	g_legowall[3].setPosition(-4.56f, 0.12f, 0.0f);
 
 	// create four balls and set the position
-	for (i=0;i<4;i++) {
+	for (i = 0; i < 4; i++) {
 		if (false == g_sphere[i].create(Device, sphereColor[i])) return false;
-		g_sphere[i].setCenter(spherePos[i][0], (float)M_RADIUS , spherePos[i][1]);
-		g_sphere[i].setPower(0,0);
+		g_sphere[i].setCenter(spherePos[i][0], (float)M_RADIUS, spherePos[i][1]);
+		g_sphere[i].setPower(0, 0);
 	}
-	
-	// create blue ball for set direction
-    if (false == g_target_blueball.create(Device, d3d::BLUE)) return false;
-	g_target_blueball.setCenter(.0f, (float)M_RADIUS , .0f);
 
-	// °æ·Î »ı¼º
+	// create blue ball for set direction
+	if (false == g_target_blueball.create(Device, d3d::BLUE)) return false;
+	g_target_blueball.setCenter(.0f, (float)M_RADIUS, .0f);
+
+	// ê²½ë¡œ ìƒì„±
 	path.create(Device);
-	// ´ç±¸Ã¤ »ı¼º
+	// ë‹¹êµ¬ì±„ ìƒì„±
 	stick.create(Device, 0.05f, 0.1f, 7);
-	// ÅØ½ºÆ® »ı¼º
+	// í…ìŠ¤íŠ¸ ìƒì„±
 	text.create(Device, "score");
 	text.setTransform(-1, 0.2f, 3.2f, PI / 2, 0.5f);
-	
+	// ì ìˆ˜ í…ìŠ¤íŠ¸ ìƒì„±
+	scoreText.create(Device, std::to_string(score).c_str());
+	scoreText.setTransform(1, 0.2f, 3.2f, PI / 2, 0.5f);
+
 	// light setting 
-    D3DLIGHT9 lit;
-    ::ZeroMemory(&lit, sizeof(lit));
-    lit.Type         = D3DLIGHT_POINT;
-    lit.Diffuse      = d3d::WHITE; 
-	lit.Specular     = d3d::WHITE * 0.9f;
-    lit.Ambient      = d3d::WHITE * 0.9f;
-    lit.Position     = D3DXVECTOR3(0.0f, 3.0f, 0.0f);
-    lit.Range        = 100.0f;
-    lit.Attenuation0 = 0.0f;
-    lit.Attenuation1 = 0.9f;
-    lit.Attenuation2 = 0.0f;
-    if (false == g_light.create(Device, lit))
-        return false;
-	
+	D3DLIGHT9 lit;
+	::ZeroMemory(&lit, sizeof(lit));
+	lit.Type = D3DLIGHT_POINT;
+	lit.Diffuse = d3d::WHITE;
+	lit.Specular = d3d::WHITE * 0.9f;
+	lit.Ambient = d3d::WHITE * 0.9f;
+	lit.Position = D3DXVECTOR3(0.0f, 3.0f, 0.0f);
+	lit.Range = 100.0f;
+	lit.Attenuation0 = 0.0f;
+	lit.Attenuation1 = 0.9f;
+	lit.Attenuation2 = 0.0f;
+	if (false == g_light.create(Device, lit))
+		return false;
+
 	// Position and aim the camera.
 	D3DXVECTOR3 pos(0.0f, 5.0f, -8.0f);
 	D3DXVECTOR3 target(0.0f, 0.0f, 0.0f);
 	D3DXVECTOR3 up(0.0f, 2.0f, 0.0f);
 	D3DXMatrixLookAtLH(&g_mView, &pos, &target, &up);
 	Device->SetTransform(D3DTS_VIEW, &g_mView);
-	
+
 	// Set the projection matrix.
 	D3DXMatrixPerspectiveFovLH(&g_mProj, D3DX_PI / 4,
-        (float)Width / (float)Height, 1.0f, 100.0f);
+		(float)Width / (float)Height, 1.0f, 100.0f);
 	Device->SetTransform(D3DTS_PROJECTION, &g_mProj);
-	
-    // Set render states.
-    Device->SetRenderState(D3DRS_LIGHTING, TRUE);
-    Device->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
-    Device->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
-	
+
+	// Set render states.
+	Device->SetRenderState(D3DRS_LIGHTING, TRUE);
+	Device->SetRenderState(D3DRS_SPECULARENABLE, TRUE);
+	Device->SetRenderState(D3DRS_SHADEMODE, D3DSHADE_GOURAUD);
+
 	g_light.setLight(Device, g_mWorld);
 	return true;
 }
 
 void Cleanup(void)
 {
-    g_legoPlane.destroy();
-	for(int i = 0 ; i < 4; i++) {
+	g_legoPlane.destroy();
+	for (int i = 0; i < 4; i++) {
 		g_legowall[i].destroy();
 	}
-    destroyAllLegoBlock();
-    g_light.destroy();
+	destroyAllLegoBlock();
+	g_light.destroy();
 }
 
 
@@ -870,54 +893,70 @@ void Cleanup(void)
 // the distance of moving balls should be "velocity * timeDelta"
 bool Display(float timeDelta)
 {
-	int i=0;
+	int i = 0;
 	int j = 0;
 
 
-	if( Device )
+	if (Device)
 	{
 		Device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x00afafaf, 1.0f, 0);
 		Device->BeginScene();
-		
+
 		// update the position of each ball. during update, check whether each ball hit by walls.
-		for( i = 0; i < 4; i++) {
+		for (i = 0; i < 4; i++) {
 			g_sphere[i].ballUpdate(timeDelta);
-			for(j = 0; j < 4; j++){ g_legowall[i].hitBy(g_sphere[j]); }
+			for (j = 0; j < 4; j++) { g_legowall[i].hitBy(g_sphere[j]); }
 		}
 
 		// check whether any two balls hit together and update the direction of balls
-		for(i = 0 ;i < 4; i++){
-			for(j = 0 ; j < 4; j++) {
-				if(i >= j) {continue;}
+		for (i = 0; i < 4; i++) {
+			for (j = 0; j < 4; j++) {
+				if (i >= j) { continue; }
 				g_sphere[i].hitBy(g_sphere[j]);
 			}
 		}
 
+		for (i = 0; i < 3; i++) {		// ë§ëŠ” ê³µ
+			for (j = 0; j < 4; j++) {	// ì¹˜ëŠ” ê³µ
+				if (i == j) { continue; }
+				if (g_sphere[i].hasIntersected(g_sphere[j])) {
+					if (i == 2) {
+						score -= 10;	// ë…¸ë€ ê³µì— ì¶©ëŒí•˜ë©´ ì ìˆ˜ -10
+						if (score < 10) score = 0;
+					}
+					else
+						score += 10;	// ë¹¨ê°„ ê³µì— ì¶©ëŒí•˜ë©´ ì ìˆ˜ +10
+				}
+			}
+		}
+		scoreText.create(Device, std::to_string(score).c_str()); // ì ìˆ˜ í…ìŠ¤íŠ¸ ì—…ë°ì´íŠ¸
+
 		// draw plane, walls, and spheres
 		g_legoPlane.draw(Device, g_mWorld);
-		for (i=0;i<4;i++) 	{
+		for (i = 0; i < 4; i++) {
 			g_legowall[i].draw(Device, g_mWorld);
 			g_sphere[i].draw(Device, g_mWorld);
 		}
 		g_target_blueball.draw(Device, g_mWorld);
-        g_light.draw(Device);
+		g_light.draw(Device);
 
-		if (stick.isMove()) {	// ´ç±¸Ã¤°¡ ¿òÁ÷ÀÌ´Â ÁßÀÌ¶ó¸é
-			stick.stickUpdate(timeDelta);	// ´ç±¸Ã¤ ÀÌµ¿
-			stick.hitBy(g_sphere[3]);		// Èò °ø°ú Ãæµ¹ °Ë»ç
-			stick.draw(Device, g_mWorld);	// ´ç±¸Ã¤ ±×¸®±â
+		if (stick.isMove()) {	// ë‹¹êµ¬ì±„ê°€ ì›€ì§ì´ëŠ” ì¤‘ì´ë¼ë©´
+			stick.stickUpdate(timeDelta);	// ë‹¹êµ¬ì±„ ì´ë™
+			stick.hitBy(g_sphere[3]);		// í° ê³µê³¼ ì¶©ëŒ ê²€ì‚¬
+			stick.draw(Device, g_mWorld);	// ë‹¹êµ¬ì±„ ê·¸ë¦¬ê¸°
 		}
-		else if(isTarget) {		// ´ç±¸Ã¤°¡ ¿òÁ÷ÀÌÁö ¾Ê°í ¸¶¿ì½º ¿ìÅ¬¸¯ ÁßÀÌ¶ó¸é
-			path.draw(Device, g_mWorld, g_sphere[3].getCenter(), g_target_blueball.getCenter()); // °æ·Î ±×¸®±â
-			stick.setTarget(g_sphere[3].getCenter(), g_target_blueball.getCenter());		// Èò °ø°ú ÆÄ¶õ °ø¿¡ ¸ÂÃç ´ç±¸Ã¤ À§Ä¡, °¢µµ ¼³Á¤
-			stick.draw(Device, g_mWorld);				// ´ç±¸Ã¤ ±×¸®±â
+		else if (isTarget) {		// ë‹¹êµ¬ì±„ê°€ ì›€ì§ì´ì§€ ì•Šê³  ë§ˆìš°ìŠ¤ ìš°í´ë¦­ ì¤‘ì´ë¼ë©´
+			path.draw(Device, g_mWorld, g_sphere[3].getCenter(), g_target_blueball.getCenter()); // ê²½ë¡œ ê·¸ë¦¬ê¸°
+			stick.setTarget(g_sphere[3].getCenter(), g_target_blueball.getCenter());		// í° ê³µê³¼ íŒŒë€ ê³µì— ë§ì¶° ë‹¹êµ¬ì±„ ìœ„ì¹˜, ê°ë„ ì„¤ì •
+			stick.draw(Device, g_mWorld);				// ë‹¹êµ¬ì±„ ê·¸ë¦¬ê¸°
 		}
-		
-		text.draw(Device, g_mWorld);		// ÅØ½ºÆ® ±×¸®±â	
+
+		text.draw(Device, g_mWorld);		// í…ìŠ¤íŠ¸ ê·¸ë¦¬ê¸°
+		scoreText.draw(Device, g_mWorld);	// ì ìˆ˜ í…ìŠ¤íŠ¸ ê·¸ë¦¬ê¸°
 
 		Device->EndScene();
 		Device->Present(0, 0, 0, 0);
-		Device->SetTexture( 0, NULL );
+		Device->SetTexture(0, NULL);
 	}
 	return true;
 }
@@ -926,139 +965,141 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
 	static bool wire = false;
 	static bool isReset = true;
-    static int old_x = 0;
-    static int old_y = 0;
-    static enum { WORLD_MOVE, LIGHT_MOVE, BLOCK_MOVE } move = WORLD_MOVE;
-	
-	switch( msg ) {
+	static int old_x = 0;
+	static int old_y = 0;
+	static enum { WORLD_MOVE, LIGHT_MOVE, BLOCK_MOVE } move = WORLD_MOVE;
+
+	switch (msg) {
 	case WM_DESTROY:
-        {
-			::PostQuitMessage(0);
-			break;
-        }
+	{
+		::PostQuitMessage(0);
+		break;
+	}
 	case WM_KEYDOWN:
-        {
-            switch (wParam) {
-            case VK_ESCAPE:
-				::DestroyWindow(hwnd);
-                break;
-            case VK_RETURN:
-                if (NULL != Device) {
-                    wire = !wire;
-                    Device->SetRenderState(D3DRS_FILLMODE,
-                        (wire ? D3DFILL_WIREFRAME : D3DFILL_SOLID));
-                }
-                break;
-            case VK_SPACE:
-				// ¸¶¿ì½º ¿ìÅ¬¸¯ + Èò °øÀÌ ¸ØÃçÀÖÀ» ¶§¸¸
-				if (isTarget && abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01) {
-					isTarget = false; // ¸¶¿ì½º ¿ìÅ¬¸¯ ÇØÁ¦
-
-					D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
-					D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
-					double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
-						pow(targetpos.z - whitepos.z, 2)));		// ±âº» 1 »çºĞ¸é
-					if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 »çºĞ¸é
-					if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 »çºĞ¸é
-					if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0) { theta = PI + theta; } // 3 »çºĞ¸é
-					double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
-					//g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
-
-					stick.setPower(distance * cos(theta), distance * sin(theta));		// ´ç±¸Ã¤ ¿òÁ÷ÀÓ
-				}
-				break;
-
+	{
+		switch (wParam) {
+		case VK_ESCAPE:
+			::DestroyWindow(hwnd);
+			break;
+		case VK_RETURN:
+			if (NULL != Device) {
+				wire = !wire;
+				Device->SetRenderState(D3DRS_FILLMODE,
+					(wire ? D3DFILL_WIREFRAME : D3DFILL_SOLID));
 			}
 			break;
-        }
-		
-	case WM_MOUSEMOVE:
-        {
-            int new_x = LOWORD(lParam);
-            int new_y = HIWORD(lParam);
-			float dx;
-			float dy;
-			
-            if (LOWORD(wParam) & MK_LBUTTON) {
-				
-				isTarget = false;		// ¸¶¿ì½º ¿ìÅ¬¸¯ ÇØÁ¦
+		case VK_SPACE:
+			// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ + í° ê³µì´ ë©ˆì¶°ìˆì„ ë•Œë§Œ
+			if (isTarget && abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01) {
+				isTarget = false; // ë§ˆìš°ìŠ¤ ìš°í´ë¦­ í•´ì œ
 
-                if (isReset) {
-                    isReset = false;
-                } else {
-                    D3DXVECTOR3 vDist;
-                    D3DXVECTOR3 vTrans;
-                    D3DXMATRIX mTrans;
-                    D3DXMATRIX mX;
-                    D3DXMATRIX mY;
-					
-                    switch (move) {
-                    case WORLD_MOVE:
-                        dx = (old_x - new_x) * 0.01f;
-                        dy = (old_y - new_y) * 0.01f;
-                        D3DXMatrixRotationY(&mX, dx);
-                        D3DXMatrixRotationX(&mY, dy);
-                        g_mWorld = g_mWorld * mX * mY;
-						
-                        break;
-                    }
-                }
-				
-                old_x = new_x;
-                old_y = new_y;
+				D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
+				D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
+				double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
+					pow(targetpos.z - whitepos.z, 2)));		// ê¸°ë³¸ 1 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z >= 0 && targetpos.x - whitepos.x <= 0) { theta = PI - theta; } //2 ì‚¬ë¶„ë©´
+				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x <= 0) { theta = PI + theta; } // 3 ì‚¬ë¶„ë©´
+				double distance = sqrt(pow(targetpos.x - whitepos.x, 2) + pow(targetpos.z - whitepos.z, 2));
+				//g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
 
-            } else {
-                isReset = true;
-				
-				isTarget = false;		// ¸¶¿ì½º ¿ìÅ¬¸¯ ÇØÁ¦
-				if (LOWORD(wParam) & MK_RBUTTON) {
-					if (abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01 && !stick.isMove()) {
-						isTarget = true;	// Èò °ø°ú ´ç±¸Ã¤°¡ ¸ØÃçÀÖÀ» ¶§¸¸ true
-					}
+				stick.setPower(distance * cos(theta), distance * sin(theta));		// ë‹¹êµ¬ì±„ ì›€ì§ì„
+			}
+			break;
 
-					dx = (old_x - new_x);// * 0.01f;
-					dy = (old_y - new_y);// * 0.01f;
-		
-					D3DXVECTOR3 coord3d=g_target_blueball.getCenter();
-					g_target_blueball.setCenter(coord3d.x+dx*(-0.007f),coord3d.y,coord3d.z+dy*0.007f );
-				}
-				old_x = new_x;
-				old_y = new_y;
-				
-                move = WORLD_MOVE;
-            }
-            break;
-        }
+		}
+		break;
 	}
-	
+
+	case WM_MOUSEMOVE:
+	{
+		int new_x = LOWORD(lParam);
+		int new_y = HIWORD(lParam);
+		float dx;
+		float dy;
+
+		if (LOWORD(wParam) & MK_LBUTTON) {
+
+			isTarget = false;		// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ í•´ì œ
+
+			if (isReset) {
+				isReset = false;
+			}
+			else {
+				D3DXVECTOR3 vDist;
+				D3DXVECTOR3 vTrans;
+				D3DXMATRIX mTrans;
+				D3DXMATRIX mX;
+				D3DXMATRIX mY;
+
+				switch (move) {
+				case WORLD_MOVE:
+					dx = (old_x - new_x) * 0.01f;
+					dy = (old_y - new_y) * 0.01f;
+					D3DXMatrixRotationY(&mX, dx);
+					D3DXMatrixRotationX(&mY, dy);
+					g_mWorld = g_mWorld * mX * mY;
+
+					break;
+				}
+			}
+
+			old_x = new_x;
+			old_y = new_y;
+
+		}
+		else {
+			isReset = true;
+
+			isTarget = false;		// ë§ˆìš°ìŠ¤ ìš°í´ë¦­ í•´ì œ
+			if (LOWORD(wParam) & MK_RBUTTON) {
+				if (abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01 && !stick.isMove()) {
+					isTarget = true;	// í° ê³µê³¼ ë‹¹êµ¬ì±„ê°€ ë©ˆì¶°ìˆì„ ë•Œë§Œ true
+				}
+
+				dx = (old_x - new_x);// * 0.01f;
+				dy = (old_y - new_y);// * 0.01f;
+
+				D3DXVECTOR3 coord3d = g_target_blueball.getCenter();
+				g_target_blueball.setCenter(coord3d.x + dx * (-0.007f), coord3d.y, coord3d.z + dy * 0.007f);
+			}
+			old_x = new_x;
+			old_y = new_y;
+
+			move = WORLD_MOVE;
+		}
+		break;
+	}
+	}
+
 	return ::DefWindowProc(hwnd, msg, wParam, lParam);
 }
 
 int WINAPI WinMain(HINSTANCE hinstance,
-				   HINSTANCE prevInstance, 
-				   PSTR cmdLine,
-				   int showCmd)
+	HINSTANCE prevInstance,
+	PSTR cmdLine,
+	int showCmd)
 {
-    srand(static_cast<unsigned int>(time(NULL)));
-	
-	if(!d3d::InitD3D(hinstance,
+	srand(static_cast<unsigned int>(time(NULL)));
+
+	if (!d3d::InitD3D(hinstance,
 		Width, Height, true, D3DDEVTYPE_HAL, &Device))
 	{
 		::MessageBox(0, "InitD3D() - FAILED", 0, 0);
 		return 0;
 	}
-	
-	if(!Setup())
+
+	if (!Setup())
 	{
 		::MessageBox(0, "Setup() - FAILED", 0, 0);
 		return 0;
 	}
-	
-	d3d::EnterMsgLoop( Display );
-	
+
+	d3d::EnterMsgLoop(Display);
+
 	Cleanup();
-	
+
 	Device->Release();
-	
+
 	return 0;
 }

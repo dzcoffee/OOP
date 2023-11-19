@@ -785,6 +785,7 @@ CStick stick;			// 당구채
 CText text;				// 텍스트
 CText scoreText;		// 점수 텍스트
 int score = 0;			// 점수 저장
+bool isHit[4] = { false, false, false, false };		// 각 공의 충돌 여부 저장
 
 double g_camera_pos[3] = { 0.0, 5.0, -8.0 };
 
@@ -919,16 +920,23 @@ bool Display(float timeDelta)
 		for (i = 0; i < 3; i++) {		// 맞는 공
 			for (j = 0; j < 4; j++) {	// 치는 공
 				if (i == j) { continue; }
-				if (g_sphere[i].hasIntersected(g_sphere[j])) {
+				if (!isHit[i] && g_sphere[i].hasIntersected(g_sphere[j])) {
 					if (i == 2) {
 						score -= 10;	// 노란 공에 충돌하면 점수 -10
 						if (score < 10) score = 0;
+						else {
+							isHit[i] = true;
+						}
 					}
-					else
+					else {
 						score += 10;	// 빨간 공에 충돌하면 점수 +10
+						isHit[i] = true;
+					}
 				}
 			}
 		}
+
+		scoreText.destroy();						// 기존 점수 텍스트 제거
 		scoreText.create(Device, std::to_string(score).c_str()); // 점수 텍스트 업데이트
 
 		// draw plane, walls, and spheres
@@ -1004,6 +1012,10 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				//g_sphere[3].setPower(distance * cos(theta), distance * sin(theta));
 
 				stick.setPower(distance * cos(theta), distance * sin(theta));		// 당구채 움직임
+
+				for (int i = 0; i < 4; i++) {		// 공을 칠 때마다 isHit 배열 초기화
+					isHit[i] = false;
+				}
 			}
 			break;
 

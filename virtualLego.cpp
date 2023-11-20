@@ -104,7 +104,7 @@ public:
 	{
 		// Insert your code here.
 		double dist = sqrt(pow(center_x - ball.getPos_X(), 2) + pow(center_z - ball.getPos_Z(), 2));
-		if (dist < 2 * getRadius() - 0.02) return true;
+		if (dist < 2 * getRadius() - 0.0) return true;
 		else return false;
 	}
 
@@ -785,6 +785,7 @@ CStick stick;			// 당구채
 CText text;				// 텍스트
 CText scoreText;		// 점수 텍스트
 int score = 50;			// 점수 저장, 50점에서 시작
+bool isNewTurn = false;								// 게임의 턴이 새로 돌아왔는지 저장
 bool isHit[4] = { false, false, false, false };		// 각 공의 충돌 여부 저장
 bool isStopped[4] = { false, false, false, false };	// 각 공의 정지 여부 저장
 
@@ -904,6 +905,8 @@ bool Display(float timeDelta)
 		Device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x00afafaf, 1.0f, 0);
 		Device->BeginScene();
 
+		if (!isNewTurn && abs(g_sphere[3].getVelocity_X()) > 0.01 && abs(g_sphere[3].getVelocity_Z()) > 0.01) isNewTurn = true;
+
 		// update the position of each ball. during update, check whether each ball hit by walls.
 		for (i = 0; i < 4; i++) {
 			g_sphere[i].ballUpdate(timeDelta);
@@ -918,24 +921,32 @@ bool Display(float timeDelta)
 			}
 		}
 
-		for (i = 0; i < 3; i++) {
+		for (i = 0; i < 4; i++) {
 			for (j = 0; j < 4; j++) {
 				if (i == j) { continue; }
 
 				if (!isHit[i] && g_sphere[i].hasIntersected(g_sphere[j]))
 					isHit[i] = true;
-				if (abs(g_sphere[j].getVelocity_X()) < 0.01 && abs(g_sphere[j].getVelocity_Z()) < 0.01)
-					isStopped[j] = true;
+				if (abs(g_sphere[i].getVelocity_X()) < 0.01 && abs(g_sphere[i].getVelocity_Z()) < 0.01)
+					isStopped[i] = true;
 			}
 		}
 
 		if (isStopped[0] && isStopped[1] && isStopped[2] && isStopped[3]) {
-			if (isHit[2])				// 노란 공에 충돌하면 점수 +10
-				score += 10;
-			if (isHit[0] && isHit[1] && !isHit[2]) {
-				score -= 10;			// 빨간 공에 연달아 충돌하면 점수 -10
-				if (score < 0) score = 0;
+			if (!isHit[0] && !isHit[1] && !isHit[2] && isNewTurn)
+				score -= 10;				// 아무 공에도 맞지 않으면 점수 -10
+			else if (isHit[2])
+				score -= 10;				// 노란 공에 맞으면 점수 -10
+			else {
+				if (isHit[0] && isHit[1]) {
+					score += 10;			// 빨간 공 2개에 연달아 맞으면 점수 +10
+					if (score < 0) score = 0;
+				}
+				if ((isHit[0] && !isHit[1]) || (!isHit[0] && isHit[1])) {
+					score += 0;				// 빨간 공 하나만 맞으면 점수 +0
+				}
 			}
+			isNewTurn = false;
 			memset(isHit, false, 4);
 			memset(isStopped, false, 4);
 		}

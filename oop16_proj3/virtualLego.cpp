@@ -110,6 +110,8 @@ public:
 
 	void hitBy(CSphere& ball)
 	{
+		auto targetDir = ball.getCenter() - this->getCenter();
+		if (targetDir.x * m_velocity_x + targetDir.z * m_velocity_z < 0) return;	// 공끼리 멀어지고 있으면 충돌판정 안함
 		if (hasIntersected(ball))
 		{
 			// Calculate relative velocity

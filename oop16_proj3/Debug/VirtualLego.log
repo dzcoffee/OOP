@@ -3,31 +3,26 @@
 C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(1,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
 C:\Users\jy\source\repos\OOP\oop16_proj3\d3dUtility.h(23,1): warning C4005: 'INFINITY': 매크로 재정의
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt\corecrt_math.h(88,1): message : 'INFINITY'의 이전 정의를 참조하십시오.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(116,18): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(117,18): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(131,1): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(170,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(171,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(298): warning C4305: 'return': 'double'에서 'float'(으)로 잘립니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(344): warning C4305: '인수': 'double'에서 'FLOAT'(으)로 잘립니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(405,16): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(506,1): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(526,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(527,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(545,16): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(546,15): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(548,19): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(551,42): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(851,49): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(118,18): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(119,18): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(133,1): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(172,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(173,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(300): warning C4305: 'return': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(346): warning C4305: '인수': 'double'에서 'FLOAT'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(407,16): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(508,1): warning C4305: '초기화 중': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(528,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(529,24): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(547,16): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(548,15): warning C4244: '초기화 중': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(550,19): warning C4244: '=': 'double'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(553,42): warning C4244: '인수': 'double'에서 'FLOAT'(으)로 변환하면서 데이터가 손실될 수 있습니다.
 C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(853,49): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(857,53): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(855,49): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
 C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(859,53): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(1016,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(1134,17): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(1135,17): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
-  d3dUtility.cpp
-C:\Users\jy\source\repos\OOP\oop16_proj3\d3dUtility.h(23,1): warning C4005: 'INFINITY': 매크로 재정의
-C:\Program Files (x86)\Windows Kits\10\Include\10.0.22000.0\ucrt\corecrt_math.h(88,1): message : 'INFINITY'의 이전 정의를 참조하십시오.
-  코드를 생성하고 있습니다...
-d3dUtility.obj : warning LNK4075: '/EDITANDCONTINUE'이(가) '/SAFESEH' 사양으로 인해 무시됩니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(861,53): warning C4305: '인수': 'double'에서 'float'(으)로 잘립니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(1015,1): warning C4819: 현재 코드 페이지(949)에서 표시할 수 없는 문자가 파일에 들어 있습니다. 데이터가 손실되지 않게 하려면 해당 파일을 유니코드 형식으로 저장하십시오.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(1136,17): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
+C:\Users\jy\source\repos\OOP\oop16_proj3\virtualLego.cpp(1137,17): warning C4244: '=': 'int'에서 'float'(으)로 변환하면서 데이터가 손실될 수 있습니다.
   VirtualLego.vcxproj -> C:\Users\jy\source\repos\OOP\oop16_proj3\Debug\VirtualLego.exe

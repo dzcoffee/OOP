@@ -2,3 +2,4 @@ C:\Users\jy\Desktop\oop\oop16_proj3\Debug\VirtualLego.exe
 C:\Users\jy\source\repos\OOP\Debug\VirtualLego.exe
 C:\Users\jy\source\repos\OOP\oop16_proj3\Debug\VirtualLego.exe
 C:\Users\kimso\Desktop\oop_proj3_sowon\OOP_proj3\oop16_proj3\Debug\VirtualLego.exe
+C:\gitHUB\OOP_proj3\oop16_proj3\Debug\VirtualLego.exe

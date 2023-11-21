@@ -104,7 +104,7 @@ public:
 	{
 		// Insert your code here.
 		double dist = sqrt(pow(center_x - ball.getPos_X(), 2) + pow(center_z - ball.getPos_Z(), 2));
-		if (dist < 2 * getRadius() - 0.02) return true;
+		if (dist < 2 * getRadius() - 0.0) return true;
 		else return false;
 	}
 

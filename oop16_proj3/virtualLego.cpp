@@ -178,6 +178,9 @@ public:
 		D3DXMatrixTranslation(&m, x, y, z);
 		setLocalTransform(m);
 	}
+	bool isStopped() {
+		return abs(m_velocity_x) < 0.01 && abs(m_velocity_z) < 0.01;
+	}
 
 	float getRadius(void)  const { return (float)(M_RADIUS); }
 	const D3DXMATRIX& getLocalTransform(void) const { return m_mLocal; }
@@ -271,12 +274,12 @@ public:
 		if (hasIntersected(ball)) {
 			if (m_width > m_depth) {												// 가로방향 벽일 때
 				if (ball.getVelocity_Z() * (m_z - ball.getCenter().z) > 0) {		// 공이 벽을 향해 움직이고 있을 때만 충돌 판정
-					ball.setPower(0.7*ball.getVelocity_X(), -0.7*ball.getVelocity_Z());		// 공의 속도의 z성분 부호 반전
+					ball.setPower(0.7 * ball.getVelocity_X(), -0.7 * ball.getVelocity_Z());		// 공의 속도의 z성분 부호 반전
 				}
 			}
 			else {																	// 세로방향 벽일 때
 				if (ball.getVelocity_X() * (m_x - ball.getCenter().x) > 0) {		// 공이 벽을 향해 움직이고 있을 때만 충돌 판정
-					ball.setPower(-0.7*ball.getVelocity_X(), 0.7*ball.getVelocity_Z());		// 공의 속도의 x성분 부호 반전
+					ball.setPower(-0.7 * ball.getVelocity_X(), 0.7 * ball.getVelocity_Z());		// 공의 속도의 x성분 부호 반전
 				}
 			}
 		}
@@ -790,7 +793,7 @@ int score1 = 50;		// 플레이어1 점수 저장, 50점에서 시작
 int score2 = 50;		// 플레이어2 점수 저장, 50점에서 시작
 bool isNewTurn = false;								// 게임의 턴이 새로 돌아왔는지 저장
 bool isHit[4] = { false, false, false, false };		// 각 공의 충돌 여부 저장
-bool isStopped[4] = { false, false, false, false };	// 각 공의 정지 여부 저장
+//bool isStopped[4] = { false, false, false, false };	// 각 공의 정지 여부 저장
 int currentPlayer = 1; //처음 시작은 Player1(흰공)
 int currentBall = 3; //시작 흰공(3), 다음 노란공(2)
 
@@ -915,11 +918,12 @@ bool Display(float timeDelta)
 		Device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x00afafaf, 1.0f, 0);
 		Device->BeginScene();
 
-		if (!isNewTurn && abs(g_sphere[currentBall].getVelocity_X()) > 0.01 && abs(g_sphere[currentBall].getVelocity_Z()) > 0.01) {
+		if (!isNewTurn && !g_sphere[currentBall].isStopped()) {
 			if (currentPlayer == 1) {
 				currentPlayer = 2;
 				currentBall = 2; //노란 공
-			} else {
+			}
+			else {
 				currentPlayer = 1;
 				currentBall = 3; //흰 공
 			}
@@ -946,15 +950,15 @@ bool Display(float timeDelta)
 
 				if (!isHit[i] && g_sphere[i].hasIntersected(g_sphere[j]))
 					isHit[i] = true;
-				if (abs(g_sphere[i].getVelocity_X()) < 0.01 && abs(g_sphere[i].getVelocity_Z()) < 0.01)
-					isStopped[i] = true;
 			}
+			/*if (isNewTurn && abs(g_sphere[i].getVelocity_X()) < 0.01 && abs(g_sphere[i].getVelocity_Z()) < 0.01)
+				isStopped[i] = true;*/
 		}
 
-		if (isStopped[0] && isStopped[1] && isStopped[2] && isStopped[3]) {
-			if(currentPlayer != 1)//하얀공이면(이전의 플레이어를 계산하는 방식)
-			{	
-				if (!isHit[0] && !isHit[1] && !isHit[2] && isNewTurn)
+		if (isNewTurn && g_sphere[0].isStopped() && g_sphere[1].isStopped() && g_sphere[2].isStopped() && g_sphere[3].isStopped()) {
+			if (currentPlayer != 1)//하얀공이면(이전의 플레이어를 계산하는 방식)
+			{
+				if (!isHit[0] && !isHit[1] && !isHit[2])
 					score1 -= 10;				// 아무 공에도 맞지 않으면 점수 -10
 				else if (isHit[2])
 					score1 -= 10;				// 노란 공에 맞으면 점수 -10
@@ -968,8 +972,8 @@ bool Display(float timeDelta)
 					}
 				}
 			}
-			else if(currentPlayer != 2){
-				if (!isHit[0] && !isHit[1] && !isHit[3] && isNewTurn)
+			else if (currentPlayer != 2) {
+				if (!isHit[0] && !isHit[1] && !isHit[3])
 					score2 -= 10;				// 아무 공에도 맞지 않으면 점수 -10
 				else if (isHit[3])
 					score2 -= 10;				// 노란 공에 맞으면 점수 -10
@@ -985,8 +989,8 @@ bool Display(float timeDelta)
 			}
 			isNewTurn = false;
 			memset(isHit, false, 4);
-			memset(isStopped, false, 4);
-			
+			//memset(isStopped, false, 4);
+
 		}
 
 		scoreText1.destroy();						// 기존 점수 텍스트 제거
@@ -1001,7 +1005,7 @@ bool Display(float timeDelta)
 			g_sphere[i].draw(Device, g_mWorld);
 		}
 		g_target_blueball.draw(Device, g_mWorld);
-		g_light.draw(Device);
+		//g_light.draw(Device);
 
 		if (stick.isMove()) {	// 당구채가 움직이는 중이라면
 			stick.stickUpdate(timeDelta);	// 당구채 이동
@@ -1055,7 +1059,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case VK_SPACE:
 			// 마우스 우클릭 + 흰 공이 멈춰있을 때만
-			if (isTarget && abs(g_sphere[currentBall].getVelocity_X()) < 0.01 && abs(g_sphere[currentBall].getVelocity_Z()) < 0.01) {
+			if (isTarget) {
 				isTarget = false; // 마우스 우클릭 해제
 
 				D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
@@ -1073,7 +1077,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				for (int i = 0; i < 4; i++) {		// 공을 칠 때마다 isHit 배열 초기화
 					isHit[i] = false;
 				}
-				
+
 			}
 			break;
 
@@ -1123,7 +1127,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			isTarget = false;		// 마우스 우클릭 해제
 			if (LOWORD(wParam) & MK_RBUTTON) {
-				if (abs(g_sphere[currentBall].getVelocity_X()) < 0.01 && abs(g_sphere[currentBall].getVelocity_Z()) < 0.01 && !stick.isMove()) {
+				if (!stick.isMove() && !isNewTurn) {
 					isTarget = true;	// 흰 공과 당구채가 멈춰있을 때만 true
 				}
 

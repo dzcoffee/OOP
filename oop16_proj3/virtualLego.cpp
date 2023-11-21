@@ -178,6 +178,9 @@ public:
 		D3DXMatrixTranslation(&m, x, y, z);
 		setLocalTransform(m);
 	}
+	bool isStopped() {
+		return abs(m_velocity_x) < 0.01 && abs(m_velocity_z) < 0.01;
+	}
 
 	float getRadius(void)  const { return (float)(M_RADIUS); }
 	const D3DXMATRIX& getLocalTransform(void) const { return m_mLocal; }
@@ -782,10 +785,17 @@ CLight	g_light;
 CPath path;				// 공이 움직일 경로
 bool isTarget = false;	// 마우스 우클릭 여부
 CStick stick;			// 당구채
-CText text;				// 텍스트
-CText scoreText;		// 점수 텍스트
-int score = 0;			// 점수 저장
+CText text1;			// 플레이어1 텍스트
+CText text2;			// 플레이어2 텍스트
+CText scoreText1;		// 플레이어1 점수 텍스트
+CText scoreText2;		// 점수 텍스트
+int score1 = 50;		// 플레이어1 점수 저장, 50점에서 시작
+int score2 = 50;		// 플레이어2 점수 저장, 50점에서 시작
+bool isNewTurn = false;								// 게임의 턴이 새로 돌아왔는지 저장
 bool isHit[4] = { false, false, false, false };		// 각 공의 충돌 여부 저장
+//bool isStopped[4] = { false, false, false, false };	// 각 공의 정지 여부 저장
+int currentPlayer = 1; //처음 시작은 Player1(흰공)
+int currentBall = 3; //시작 흰공(3), 다음 노란공(2)
 
 double g_camera_pos[3] = { 0.0, 5.0, -8.0 };
 
@@ -837,11 +847,16 @@ bool Setup()
 	// 당구채 생성
 	stick.create(Device, 0.05f, 0.1f, 7);
 	// 텍스트 생성
-	text.create(Device, "score");
-	text.setTransform(-1, 0.2f, 3.2f, PI / 2, 0.5f);
+	text1.create(Device, "Score(Player1) : "); //플레이어1
+	text1.setTransform(-2, 0.2f, 3.7f, PI / 2, 0.5f);
+	text2.create(Device, "Score(Player2) : "); //플레이어2
+	text2.setTransform(-2, 0.2f, 3.2f, PI / 2, 0.5f);
+
 	// 점수 텍스트 생성
-	scoreText.create(Device, std::to_string(score).c_str());
-	scoreText.setTransform(1, 0.2f, 3.2f, PI / 2, 0.5f);
+	scoreText1.create(Device, std::to_string(score1).c_str()); //플레이어1
+	scoreText1.setTransform(2, 0.2f, 3.7f, PI / 2, 0.5f);
+	scoreText2.create(Device, std::to_string(score2).c_str()); //플레이어2
+	scoreText2.setTransform(2, 0.2f, 3.2f, PI / 2, 0.5f);
 
 	// light setting 
 	D3DLIGHT9 lit;
@@ -903,6 +918,17 @@ bool Display(float timeDelta)
 		Device->Clear(0, 0, D3DCLEAR_TARGET | D3DCLEAR_ZBUFFER, 0x00afafaf, 1.0f, 0);
 		Device->BeginScene();
 
+		if (!isNewTurn && !g_sphere[currentBall].isStopped()) {
+			if (currentPlayer == 1) {
+				currentPlayer = 2;
+				currentBall = 2; //노란 공
+			} else {
+				currentPlayer = 1;
+				currentBall = 3; //흰 공
+			}
+			isNewTurn = true;
+		}
+
 		// update the position of each ball. during update, check whether each ball hit by walls.
 		for (i = 0; i < 4; i++) {
 			g_sphere[i].ballUpdate(timeDelta);
@@ -917,27 +943,59 @@ bool Display(float timeDelta)
 			}
 		}
 
-		for (i = 0; i < 3; i++) {		// 맞는 공
-			for (j = 0; j < 4; j++) {	// 치는 공
+		for (i = 0; i < 4; i++) {
+			for (j = 0; j < 4; j++) {
 				if (i == j) { continue; }
-				if (!isHit[i] && g_sphere[i].hasIntersected(g_sphere[j])) {
-					if (i == 2) {
-						score -= 10;	// 노란 공에 충돌하면 점수 -10
-						if (score < 10) score = 0;
-						else {
-							isHit[i] = true;
-						}
+
+				if (!isHit[i] && g_sphere[i].hasIntersected(g_sphere[j]))
+					isHit[i] = true;
+			}
+			/*if (isNewTurn && abs(g_sphere[i].getVelocity_X()) < 0.01 && abs(g_sphere[i].getVelocity_Z()) < 0.01)
+				isStopped[i] = true;*/
+		}
+
+		if (isNewTurn && g_sphere[0].isStopped() && g_sphere[1].isStopped() && g_sphere[2].isStopped() && g_sphere[3].isStopped()) {
+			if(currentPlayer != 1)//하얀공이면(이전의 플레이어를 계산하는 방식)
+			{	
+				if (!isHit[0] && !isHit[1] && !isHit[2])
+					score1 -= 10;				// 아무 공에도 맞지 않으면 점수 -10
+				else if (isHit[2])
+					score1 -= 10;				// 노란 공에 맞으면 점수 -10
+				else {
+					if (isHit[0] && isHit[1]) {
+						score1 += 10;			// 빨간 공 2개에 연달아 맞으면 점수 +10
+						if (score1 < 0) score1 = 0;
 					}
-					else {
-						score += 10;	// 빨간 공에 충돌하면 점수 +10
-						isHit[i] = true;
+					if ((isHit[0] && !isHit[1]) || (!isHit[0] && isHit[1])) {
+						score1 += 0;				// 빨간 공 하나만 맞으면 점수 +0
 					}
 				}
 			}
+			else if(currentPlayer != 2){
+				if (!isHit[0] && !isHit[1] && !isHit[3])
+					score2 -= 10;				// 아무 공에도 맞지 않으면 점수 -10
+				else if (isHit[3])
+					score2 -= 10;				// 노란 공에 맞으면 점수 -10
+				else {
+					if (isHit[0] && isHit[1]) {
+						score2 += 10;			// 빨간 공 2개에 연달아 맞으면 점수 +10
+						if (score1 < 0) score1 = 0;
+					}
+					if ((isHit[0] && !isHit[1]) || (!isHit[0] && isHit[1])) {
+						score2 += 0;				// 빨간 공 하나만 맞으면 점수 +0
+					}
+				}
+			}
+			isNewTurn = false;
+			memset(isHit, false, 4);
+			//memset(isStopped, false, 4);
+			
 		}
 
-		scoreText.destroy();						// 기존 점수 텍스트 제거
-		scoreText.create(Device, std::to_string(score).c_str()); // 점수 텍스트 업데이트
+		scoreText1.destroy();						// 기존 점수 텍스트 제거
+		scoreText1.create(Device, std::to_string(score1).c_str()); // 점수 텍스트 업데이트
+		scoreText2.destroy();						// 기존 점수 텍스트 제거
+		scoreText2.create(Device, std::to_string(score2).c_str()); // 점수 텍스트 업데이트
 
 		// draw plane, walls, and spheres
 		g_legoPlane.draw(Device, g_mWorld);
@@ -946,21 +1004,23 @@ bool Display(float timeDelta)
 			g_sphere[i].draw(Device, g_mWorld);
 		}
 		g_target_blueball.draw(Device, g_mWorld);
-		g_light.draw(Device);
+		//g_light.draw(Device);
 
 		if (stick.isMove()) {	// 당구채가 움직이는 중이라면
 			stick.stickUpdate(timeDelta);	// 당구채 이동
-			stick.hitBy(g_sphere[3]);		// 흰 공과 충돌 검사
+			stick.hitBy(g_sphere[currentBall]);		// 흰 공과 충돌 검사
 			stick.draw(Device, g_mWorld);	// 당구채 그리기
 		}
 		else if (isTarget) {		// 당구채가 움직이지 않고 마우스 우클릭 중이라면
-			path.draw(Device, g_mWorld, g_sphere[3].getCenter(), g_target_blueball.getCenter()); // 경로 그리기
-			stick.setTarget(g_sphere[3].getCenter(), g_target_blueball.getCenter());		// 흰 공과 파란 공에 맞춰 당구채 위치, 각도 설정
+			path.draw(Device, g_mWorld, g_sphere[currentBall].getCenter(), g_target_blueball.getCenter()); // 경로 그리기
+			stick.setTarget(g_sphere[currentBall].getCenter(), g_target_blueball.getCenter());		// 흰 공과 파란 공에 맞춰 당구채 위치, 각도 설정
 			stick.draw(Device, g_mWorld);				// 당구채 그리기
 		}
 
-		text.draw(Device, g_mWorld);		// 텍스트 그리기
-		scoreText.draw(Device, g_mWorld);	// 점수 텍스트 그리기
+		text1.draw(Device, g_mWorld);		// 텍스트 그리기
+		text2.draw(Device, g_mWorld);		// 텍스트 그리기
+		scoreText1.draw(Device, g_mWorld);	// 점수 텍스트 그리기
+		scoreText2.draw(Device, g_mWorld);	// 점수 텍스트 그리기
 
 		Device->EndScene();
 		Device->Present(0, 0, 0, 0);
@@ -998,11 +1058,11 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 			break;
 		case VK_SPACE:
 			// 마우스 우클릭 + 흰 공이 멈춰있을 때만
-			if (isTarget && abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01) {
+			if (isTarget) {
 				isTarget = false; // 마우스 우클릭 해제
 
 				D3DXVECTOR3 targetpos = g_target_blueball.getCenter();
-				D3DXVECTOR3	whitepos = g_sphere[3].getCenter();
+				D3DXVECTOR3	whitepos = g_sphere[currentBall].getCenter();
 				double theta = acos(sqrt(pow(targetpos.x - whitepos.x, 2)) / sqrt(pow(targetpos.x - whitepos.x, 2) +
 					pow(targetpos.z - whitepos.z, 2)));		// 기본 1 사분면
 				if (targetpos.z - whitepos.z <= 0 && targetpos.x - whitepos.x >= 0) { theta = -theta; }	//4 사분면
@@ -1016,6 +1076,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 				for (int i = 0; i < 4; i++) {		// 공을 칠 때마다 isHit 배열 초기화
 					isHit[i] = false;
 				}
+				
 			}
 			break;
 
@@ -1065,7 +1126,7 @@ LRESULT CALLBACK d3d::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 
 			isTarget = false;		// 마우스 우클릭 해제
 			if (LOWORD(wParam) & MK_RBUTTON) {
-				if (abs(g_sphere[3].getVelocity_X()) < 0.01 && abs(g_sphere[3].getVelocity_Z()) < 0.01 && !stick.isMove()) {
+				if (!stick.isMove() && !isNewTurn) {
 					isTarget = true;	// 흰 공과 당구채가 멈춰있을 때만 true
 				}
 
